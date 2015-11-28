@@ -150,8 +150,6 @@ class TokenView(BaseTokenView):
 
     @method_decorator(sensitive_post_parameters('password'))
     def post(self, request, *args, **kwargs):
-        import ipdb
-        ipdb.set_trace()
         response = super().post(request, *args, **kwargs)
         if request.POST['grant_type'] == 'password':
             try:
