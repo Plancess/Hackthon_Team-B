@@ -40,12 +40,15 @@ INSTALLED_APPS = (
 
     # Local apps
     'accounts',
+    'post',
 
     'oauth2_provider',
     # rest
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
+    'corsheaders',
+    'django_extensions',
 
 
 
@@ -53,6 +56,7 @@ INSTALLED_APPS = (
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -136,3 +140,23 @@ AUTHENTICATION_BACKENDS = (
 PROPRIETARY_APPLICATION_NAME = "Paq"
 
 AUTH_USER_MODEL = 'accounts.User'
+
+CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_METHODS = (
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS'
+)
+
+CORS_ALLOW_HEADERS = (
+    'x-requested-with',
+    'content-type',
+    'accept',
+    'origin',
+    'authorization',
+    'x-csrftoken'
+)
