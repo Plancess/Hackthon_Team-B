@@ -51,7 +51,7 @@ class Question(CommonFieldsMixin):
     title = models.CharField(
         max_length=500, db_index=True, verbose_name='Title')
     description = models.TextField(
-        null=True, blank=True, verbose_name='Description')
+        null=True, blank=True, verbose_name='Question Text')
     vote = models.ManyToManyField(
         Vote, related_name=_name_plural, related_query_name=_name)
     tags = models.ManyToManyField(
@@ -76,8 +76,8 @@ class Comment(CommonFieldsMixin):
     answer = models.ForeignKey(
         Answer, blank=True, null=True, related_name=_name_plural,
         related_query_name=_name)
-    description = models.TextField(
-        null=True, blank=True, verbose_name='Description')
+    text = models.TextField(
+        null=True, blank=True, verbose_name='Comment Description')
 
 
 class UserScore(CommonFieldsMixin):
