@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from accounts.serializers import UserSerializer
 
-from .models import Tag, Question, Answer
+from .models import Tag, Question, Answer, UserScore, Vote, Comment
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -23,3 +23,26 @@ class QustionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    comment_user = UserSerializer()
+    question = QustionSerializer()
+    answer = AnswerSerializer()
+
+    class Meta:
+        model = Comment
+
+
+class VoteSerializer(serializers.ModelSerializer):
+    voter_user = UserSerializer()
+
+    class Meta:
+        model = Vote
+
+
+class UserScoreSerializer(serializers.ModelSerializer):
+    voter_user = UserSerializer()
+
+    class Meta:
+        model = UserScore

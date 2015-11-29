@@ -1,8 +1,9 @@
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
-from .serializers import TagSerializer, QustionSerializer, AnswerSerializer
-from .models import Tag, Question, Answer
+from .serializers import TagSerializer, QustionSerializer, AnswerSerializer, \
+    CommentSerializer
+from .models import Tag, Question, Answer, Comment
 
 
 # Create your views here.
@@ -94,3 +95,17 @@ class AnswerCreateView(ListCreateAPIView):
             raise NotFound(str(e))
 
         return Response(AnswerSerializer(ans).data)
+
+
+class CommentCreateView(ListCreateAPIView):
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        return Comment.objects.all()
+
+    def list(self, request):
+        # Note the use of `get_queryset()` instead of `self.queryset`
+        queryset = self.get_queryset()
+        serializer = CommentSerializer(queryset, many=True)
+
+        return Response(serializer.data)
