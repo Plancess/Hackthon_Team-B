@@ -26,9 +26,9 @@ class QustionSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    comment_user = UserSerializer()
+    comment_user = UserSerializer(allow_null=True)
     question = QustionSerializer()
-    answer = AnswerSerializer()
+    answer = AnswerSerializer(allow_null=True)
 
     class Meta:
         model = Comment

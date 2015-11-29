@@ -47,7 +47,7 @@ class QuestionCreateView(ListCreateAPIView):
                 post_type = Question.PUBLIC
 
         post = Question(
-            user_id=request.user, title=request.POST.get('title'),
+            user=request.user, title=request.POST.get('title'),
             description=request.POST.get('description'), type=post_type)
         post.save()
         for tag in tags:
@@ -104,8 +104,19 @@ class CommentCreateView(ListCreateAPIView):
         return Comment.objects.all()
 
     def list(self, request):
-        # Note the use of `get_queryset()` instead of `self.queryset`
         queryset = self.get_queryset()
         serializer = CommentSerializer(queryset, many=True)
 
         return Response(serializer.data)
+
+    def post(self, request):
+        comment_obj = Comment(
+            text=request.POST['text'], comment_user=request.user)
+
+        if request.POST['question']:
+            comment_obj.question_id = request.POST['question']
+        if request.POST['answer']:
+            comment_obj.answer_id = request.POST['answer']
+        comment_obj.save()
+
+        return Response(CommentSerializer(comment_obj).data)
