@@ -17,9 +17,16 @@ class Vote(CommonFieldsMixin):
 
     voter_user = models.ForeignKey(
         User, related_name=_name_plural, related_query_name=_name)
-    vote_count = models.IntegerField(
-        default=0, verbose_name='Number of post',
-        help_text='Number of vote for post Optional will have.')
+
+
+class Comment(CommonFieldsMixin):
+    _name = 'comment'
+    _name_plural = 'comments'
+
+    comment_user = models.ForeignKey(
+        User, related_name=_name_plural, related_query_name=_name)
+    text = models.TextField(
+        null=True, blank=True, verbose_name='Comment Description')
 
 
 class Answer(CommonFieldsMixin):
@@ -31,8 +38,15 @@ class Answer(CommonFieldsMixin):
         null=True, blank=True, verbose_name='Description')
     reply_user = models.ForeignKey(
         User, related_name=_name_plural, related_query_name=_name)
-    like_count = models.PositiveSmallIntegerField(
-        default=0, verbose_name='Number of likes for reply')
+
+    vote_count = models.IntegerField(
+        default=0, verbose_name='Number of post',
+        help_text='Number of vote for post Optional will have.')
+    comment = models.ManyToManyField(
+        Comment, related_name=_name_plural, blank=True, null=True,
+        related_query_name=_name)
+    answer_voter = models.ManyToManyField(
+        Vote, related_name=_name_plural, related_query_name=_name)
 
 
 class Question(CommonFieldsMixin):
@@ -52,8 +66,9 @@ class Question(CommonFieldsMixin):
         max_length=500, db_index=True, verbose_name='Title')
     description = models.TextField(
         null=True, blank=True, verbose_name='Question Text')
-    vote = models.ManyToManyField(
+    question_voter = models.ManyToManyField(
         Vote, related_name=_name_plural, related_query_name=_name)
+
     tags = models.ManyToManyField(
         Tag, related_name=_name_plural, related_query_name=_name)
     type = models.IntegerField(choices=POST_TYPE_CHOICES, default=PUBLIC)
@@ -61,23 +76,17 @@ class Question(CommonFieldsMixin):
     answers = models.ManyToManyField(
         Answer, related_name=_name_plural, blank=True, null=True,
         related_query_name=_name)
+    view_count = models.IntegerField(
+        default=0, verbose_name='Number of post',
+        help_text='Number of vote for post Optional will have.')
     has_accepted = models.BooleanField(db_index=True, default=False)
 
-
-class Comment(CommonFieldsMixin):
-    _name = 'comment'
-    _name_plural = 'comments'
-
-    comment_user = models.ForeignKey(
-        User, related_name=_name_plural, related_query_name=_name)
-    question = models.ForeignKey(
-        Question, blank=True, null=True, related_name=_name_plural,
+    vote_count = models.IntegerField(
+        default=0, verbose_name='Number of post',
+        help_text='Number of vote for post Optional will have.')
+    comment = models.ManyToManyField(
+        Comment, related_name=_name_plural, blank=True, null=True,
         related_query_name=_name)
-    answer = models.ForeignKey(
-        Answer, blank=True, null=True, related_name=_name_plural,
-        related_query_name=_name)
-    text = models.TextField(
-        null=True, blank=True, verbose_name='Comment Description')
 
 
 class UserScore(CommonFieldsMixin):

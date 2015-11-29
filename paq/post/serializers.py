@@ -11,34 +11,35 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ('id', 'title',)
 
 
+class CommentSerializer(serializers.ModelSerializer):
+    comment_user = UserSerializer(allow_null=True)
+
+    class Meta:
+        model = Comment
+
+
 class AnswerSerializer(serializers.ModelSerializer):
+    comment = CommentSerializer(many=True)
+    reply_user = UserSerializer()
+
     class Meta:
         model = Answer
+
+
+class VoteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Vote
 
 
 class QustionSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     answers = AnswerSerializer(many=True, required=False, allow_null=True)
     user = UserSerializer()
+    comment = CommentSerializer(many=True)
 
     class Meta:
         model = Question
-
-
-class CommentSerializer(serializers.ModelSerializer):
-    comment_user = UserSerializer(allow_null=True)
-    question = QustionSerializer()
-    answer = AnswerSerializer(allow_null=True)
-
-    class Meta:
-        model = Comment
-
-
-class VoteSerializer(serializers.ModelSerializer):
-    voter_user = UserSerializer(allow_null=True)
-
-    class Meta:
-        model = Vote
 
 
 class UserScoreSerializer(serializers.ModelSerializer):

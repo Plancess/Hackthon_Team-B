@@ -114,6 +114,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=timezone.now,
         verbose_name='Date Joined',
         help_text='The date and time when user registered.')
+    is_guru = models.BooleanField(
+        default=False,
+        verbose_name='Active Status',
+        help_text='Designates whether this user should be treated as guru or not.')
 
     objects = UserManager()
 

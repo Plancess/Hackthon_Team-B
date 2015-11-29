@@ -1,6 +1,7 @@
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
+from django.db.models import F
 from .serializers import TagSerializer, QustionSerializer, AnswerSerializer, \
     CommentSerializer, VoteSerializer
 from .models import Tag, Question, Answer, Comment, Vote
@@ -27,19 +28,21 @@ class TagCreateView(ListCreateAPIView):
 class QuestionCreateView(ListCreateAPIView):
     serializer_class = QustionSerializer
 
-    def list(self, request):
-        # Note the use of `get_queryset()` instead of `self.queryset`
+    def list(self, request, *args, **kargs):
+        # Note the use of `get_queryset()` instead of `self.queryset`\
         queryset = Question.objects.all()
-        question_id = request.GET.get('question_id')
+        question_id = kargs.get('question_id')
         if question_id:
+            Question.objects.filter(id=question_id).update(view_count=F('view_count') + 1)
             queryset = queryset.filter(id=question_id)
+
         serializer = QustionSerializer(queryset, many=True)
 
         return Response(serializer.data)
 
     def post(self, request):
-        tags = request.POST.getlist('tags')
-        answers = request.POST.getlist('answers')
+        tags = request.POST.getlist('tags[]')
+        answers = request.POST.getlist('answers[]')
         if request.POST.get('type'):
             if int(request.POST.get('type')) == 0:
                 post_type = Question.PRIVATE
@@ -83,9 +86,8 @@ class AnswerCreateView(ListCreateAPIView):
 
     def post(self, request):
         try:
-            user = request.user
             ans = Answer(
-                reply_user=user, description=request.POST.get('description'))
+                reply_user=request.user, description=request.POST.get('description'))
 
             ans.save()
             que_obj = Question.objects.get(id=request.POST.get('q_id'))
@@ -112,12 +114,15 @@ class CommentCreateView(ListCreateAPIView):
     def post(self, request):
         comment_obj = Comment(
             text=request.POST['text'], comment_user=request.user)
-
-        if request.POST['question']:
-            comment_obj.question_id = request.POST['question']
-        if request.POST['answer']:
-            comment_obj.answer_id = request.POST['answer']
         comment_obj.save()
+        if request.POST.get('question'):
+            que_obj = Question.objects.get(id=request.POST['question'])
+            que_obj.comment.add(comment_obj)
+            que_obj.save()
+        if request.POST.get('answer'):
+            ans_obj = Answer.objects.get(id=request.POST['answer'])
+            ans_obj.comment.add(comment_obj)
+            ans_obj.save()
 
         return Response(CommentSerializer(comment_obj).data)
 
@@ -138,13 +143,21 @@ class VoteCreateView(ListCreateAPIView):
     def post(self, request):
         try:
             vote = Vote(
-                voter_user=request.user, vote_count=request.POST.get('vote'))
-
+                voter_user=request.user)
             vote.save()
-            que_obj = Question.objects.get(id=request.POST.get('q_id'))
-            que_obj.vote.add(vote)
-            que_obj.save()
+
+            if request.POST.get('question'):
+                que_obj = Question.objects.get(id=request.POST.get('question'))
+                que_obj.question_voter.add(vote)
+                que_obj.vote_count += int(request.POST.get('vote'))
+                que_obj.save()
+            else:
+                que_obj = Answer.objects.get(id=request.POST.get('answer'))
+                que_obj.answer_voter.add(vote)
+                que_obj.vote_count += int(request.POST.get('vote'))
+                que_obj.save()
+
         except Exception as e:
             raise NotFound(str(e))
 
-        return Response(AnswerSerializer(vote).data)
+        return Response(VoteSerializer(vote).data)

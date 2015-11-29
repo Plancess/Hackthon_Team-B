@@ -15,12 +15,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Answer',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, auto_created=True, primary_key=True, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('description', models.TextField(verbose_name='Description', blank=True, null=True)),
-                ('like_count', models.PositiveSmallIntegerField(default=0, verbose_name='Number of likes for reply')),
-                ('reply_user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='answers', related_query_name='answer')),
+                ('description', models.TextField(blank=True, verbose_name='Description', null=True)),
+                ('vote_count', models.IntegerField(default=0, help_text='Number of vote for post Optional will have.', verbose_name='Number of post')),
             ],
             options={
                 'abstract': False,
@@ -29,11 +28,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Comment',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, auto_created=True, primary_key=True, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('text', models.TextField(verbose_name='Comment Description', blank=True, null=True)),
-                ('answer', models.ForeignKey(blank=True, null=True, related_name='comments', to='post.Answer', related_query_name='comment')),
+                ('text', models.TextField(blank=True, verbose_name='Comment Description', null=True)),
                 ('comment_user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='comments', related_query_name='comment')),
             ],
             options={
@@ -43,14 +41,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Question',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, auto_created=True, primary_key=True, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('title', models.CharField(max_length=500, db_index=True, verbose_name='Title')),
-                ('description', models.TextField(verbose_name='Question Text', blank=True, null=True)),
+                ('title', models.CharField(db_index=True, max_length=500, verbose_name='Title')),
+                ('description', models.TextField(blank=True, verbose_name='Question Text', null=True)),
                 ('type', models.IntegerField(default=1, choices=[(0, 'Private'), (1, 'Public')])),
+                ('view_count', models.IntegerField(default=0, help_text='Number of vote for post Optional will have.', verbose_name='Number of post')),
                 ('has_accepted', models.BooleanField(default=False, db_index=True)),
-                ('answers', models.ManyToManyField(to='post.Answer', blank=True, related_query_name='question', null=True, related_name='questions')),
+                ('vote_count', models.IntegerField(default=0, help_text='Number of vote for post Optional will have.', verbose_name='Number of post')),
+                ('answers', models.ManyToManyField(to='post.Answer', blank=True, related_name='questions', related_query_name='question', null=True)),
+                ('comment', models.ManyToManyField(to='post.Comment', blank=True, related_name='questions', related_query_name='question', null=True)),
             ],
             options={
                 'abstract': False,
@@ -59,10 +60,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Tag',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, auto_created=True, primary_key=True, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('title', models.CharField(max_length=500, db_index=True, verbose_name='Title')),
+                ('title', models.CharField(db_index=True, max_length=500, verbose_name='Title')),
             ],
             options={
                 'abstract': False,
@@ -71,7 +72,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserScore',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, auto_created=True, primary_key=True, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('score', models.IntegerField(default=0, verbose_name='User Score')),
@@ -88,10 +89,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Vote',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', serialize=False, primary_key=True)),
+                ('id', models.AutoField(serialize=False, auto_created=True, primary_key=True, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('vote_count', models.IntegerField(default=0, verbose_name='Number of post', help_text='Number of vote for post Optional will have.')),
                 ('voter_user', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='votes', related_query_name='vote')),
             ],
             options={
@@ -100,8 +100,13 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='question',
+            name='question_voter',
+            field=models.ManyToManyField(related_query_name='question', related_name='questions', to='post.Vote'),
+        ),
+        migrations.AddField(
+            model_name='question',
             name='tags',
-            field=models.ManyToManyField(to='post.Tag', related_query_name='question', related_name='questions'),
+            field=models.ManyToManyField(related_query_name='question', related_name='questions', to='post.Tag'),
         ),
         migrations.AddField(
             model_name='question',
@@ -109,13 +114,13 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='questions', related_query_name='question'),
         ),
         migrations.AddField(
-            model_name='question',
-            name='vote',
-            field=models.ManyToManyField(to='post.Vote', related_query_name='question', related_name='questions'),
+            model_name='answer',
+            name='comment',
+            field=models.ManyToManyField(to='post.Comment', blank=True, related_name='answers', related_query_name='answer', null=True),
         ),
         migrations.AddField(
-            model_name='comment',
-            name='question',
-            field=models.ForeignKey(blank=True, null=True, related_name='comments', to='post.Question', related_query_name='comment'),
+            model_name='answer',
+            name='reply_user',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='answers', related_query_name='answer'),
         ),
     ]
