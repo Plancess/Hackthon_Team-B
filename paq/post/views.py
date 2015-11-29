@@ -2,8 +2,8 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from .serializers import TagSerializer, QustionSerializer, AnswerSerializer, \
-    CommentSerializer
-from .models import Tag, Question, Answer, Comment
+    CommentSerializer, VoteSerializer
+from .models import Tag, Question, Answer, Comment, Vote
 
 
 # Create your views here.
@@ -120,3 +120,31 @@ class CommentCreateView(ListCreateAPIView):
         comment_obj.save()
 
         return Response(CommentSerializer(comment_obj).data)
+
+
+class VoteCreateView(ListCreateAPIView):
+    serializer_class = VoteSerializer
+
+    def get_queryset(self):
+        return Vote.objects.all()
+
+    def list(self, request):
+        # Note the use of `get_queryset()` instead of `self.queryset`
+        queryset = self.get_queryset()
+        serializer = VoteSerializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+    def post(self, request):
+        try:
+            vote = Vote(
+                voter_user=request.user, vote_count=request.POST.get('vote'))
+
+            vote.save()
+            que_obj = Question.objects.get(id=request.POST.get('q_id'))
+            que_obj.vote.add(vote)
+            que_obj.save()
+        except Exception as e:
+            raise NotFound(str(e))
+
+        return Response(AnswerSerializer(vote).data)

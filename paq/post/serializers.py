@@ -35,7 +35,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class VoteSerializer(serializers.ModelSerializer):
-    voter_user = UserSerializer()
+    voter_user = UserSerializer(allow_null=True)
 
     class Meta:
         model = Vote
